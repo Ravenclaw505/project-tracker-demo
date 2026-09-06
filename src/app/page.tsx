@@ -452,6 +452,9 @@ function PeoplePicker({
 }
 
 /* ── Sign in / register ── */
+const DEMO_EMAIL = process.env.NEXT_PUBLIC_DEMO_EMAIL || "";
+const DEMO_PASSWORD = process.env.NEXT_PUBLIC_DEMO_PASSWORD || "";
+
 function AuthScreen({
   domain, headConfigured, onSignedIn,
 }: { domain: string; headConfigured: boolean; onSignedIn: (u: Me) => void }) {
@@ -489,6 +492,30 @@ function AuthScreen({
             <p className="text-xs text-[#78766F]">Recruitment Team</p>
           </div>
         </div>
+
+        {DEMO_EMAIL && DEMO_PASSWORD && (
+          <div
+            className="mb-4 rounded-2xl border p-4 text-sm"
+            style={{ borderColor: "#D9D4C6", background: "#FBF8EF" }}
+          >
+            <p className="font-semibold" style={{ color: INK }}>Demo login</p>
+            <p className="mt-1 text-[#5B5A54]">
+              This is a public demo with made-up data. Copy these in, or use the button below.
+            </p>
+            <div className="mt-2 space-y-1 font-mono text-xs" style={{ color: INK }}>
+              <p>Email: {DEMO_EMAIL}</p>
+              <p>Password: {DEMO_PASSWORD}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => { setEmail(DEMO_EMAIL); setPassword(DEMO_PASSWORD); setMode("signin"); }}
+              className="mt-3 h-8 rounded-full px-3 text-xs font-semibold"
+              style={{ background: INK, color: "#fff" }}
+            >
+              Fill in demo login
+            </button>
+          </div>
+        )}
 
         <Card className="p-6">
           <Segmented
