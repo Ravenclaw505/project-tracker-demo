@@ -1,0 +1,19 @@
+# dependencies
+node_modules
+
+# build output
+.next
+out
+
+# secrets — never commit these
+.env
+.env.local
+.env*.local
+
+# vercel
+.vercel
+
+# misc
+*.log
+.DS_Store
+Thumbs.db
