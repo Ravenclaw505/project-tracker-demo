@@ -15,7 +15,7 @@ export async function GET() {
               SELECT 1 FROM jsonb_array_elements_text(sub_owners::jsonb) AS s(email)
               WHERE s.email = ${user.email}
             )
-      ORDER BY created_at DESC
+      ORDER BY updated_at DESC NULLS LAST, created_at DESC
     `;
     return NextResponse.json(rows.map(projectRow));
   } catch (e) {
@@ -38,10 +38,10 @@ export async function POST(req: NextRequest) {
     const subOwners = [...new Set(raw.filter(Boolean))].filter(e => e !== user.email);
 
     const [row] = await sql`
-      INSERT INTO projects (title, link, file_type, owner, sub_owners, status, start_date, end_date, notes)
+      INSERT INTO projects (title, link, file_type, owner, sub_owners, status, start_date, end_date, notes, updated_at)
       VALUES (${String(b.title).trim()}, ${normalizeUrl(b.link)}, ${b.fileType || ""}, ${user.email},
               ${JSON.stringify(subOwners)}, ${b.status || "Not Started"},
-              ${b.startDate || null}, ${b.endDate || null}, ${b.notes || ""})
+              ${b.startDate || null}, ${b.endDate || null}, ${b.notes || ""}, NOW())
       RETURNING *
     `;
 
