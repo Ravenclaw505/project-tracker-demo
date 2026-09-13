@@ -79,6 +79,9 @@ export async function POST() {
     await sql`ALTER TABLE projects ADD COLUMN IF NOT EXISTS file_type TEXT DEFAULT ''`;
     await sql`ALTER TABLE projects ADD COLUMN IF NOT EXISTS sub_owners TEXT DEFAULT '[]'`;
     await sql`ALTER TABLE projects ADD COLUMN IF NOT EXISTS notes TEXT DEFAULT ''`;
+    /* Drives "most recently touched" ordering so an edited project jumps to the top. */
+    await sql`ALTER TABLE projects ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW()`;
+    await sql`UPDATE projects SET updated_at = created_at WHERE updated_at IS NULL`;
 
     /* To-do items. created_by is the assigner, assigned_to the person who must do it. */
     await sql`
