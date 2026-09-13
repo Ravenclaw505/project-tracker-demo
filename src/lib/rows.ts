@@ -41,6 +41,7 @@ export function projectRow(r: Record<string, unknown>) {
     endDate: d(r.end_date),
     notes: r.notes || "",
     createdAt: r.created_at ? String(r.created_at) : "",
+    updatedAt: r.updated_at ? String(r.updated_at) : "",
   };
 }
 
