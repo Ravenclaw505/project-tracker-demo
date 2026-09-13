@@ -48,7 +48,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         status = ${b.status || "Not Started"},
         start_date = ${b.startDate || null},
         end_date = ${b.endDate || null},
-        notes = ${b.notes || ""}
+        notes = ${b.notes || ""},
+        updated_at = NOW()
       WHERE id = ${id}
       RETURNING *
     `;
