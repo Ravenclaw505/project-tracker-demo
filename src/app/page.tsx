@@ -23,7 +23,7 @@ type Me = { id: string; email: string; name: string; role: "head" | "member"; st
 type Person = { email: string; name: string; role: string; isMe: boolean };
 type Project = {
   id: string; title: string; link: string; fileType: string; owner: string; subOwners: string[];
-  status: string; startDate: string; endDate: string; notes: string; createdAt: string;
+  status: string; startDate: string; endDate: string; notes: string; createdAt: string; updatedAt: string;
 };
 type Task = {
   id: string; title: string; notes: string; assignedTo: string; createdBy: string;
@@ -43,7 +43,7 @@ type View = "dashboard" | "tasks" | "projects" | "calendar" | "notifications" | 
 
 const EMPTY_PROJECT: Project = {
   id: "", title: "", link: "", fileType: "", owner: "", subOwners: [],
-  status: "Not Started", startDate: "", endDate: "", notes: "", createdAt: "",
+  status: "Not Started", startDate: "", endDate: "", notes: "", createdAt: "", updatedAt: "",
 };
 const EMPTY_TASK: Task = {
   id: "", title: "", notes: "", assignedTo: "", createdBy: "",
@@ -995,6 +995,9 @@ function EventDialog({
 
 /* Strike-through (300ms) then the row slides away (200ms, starting at 280ms). */
 const ANIM_MS = 480;
+
+/* Background refresh interval for cross-user sync (projects, tasks, events, notifications). */
+const LIVE_SYNC_MS = 6000;
 
 /* ── Task row ── */
 function TaskRow({
@@ -2038,6 +2041,26 @@ export default function App() {
     loadSession().then(user => { if (user) loadData(user); });
   }, [loadSession, loadData]);
 
+  /* Keep every tab in sync without a manual refresh: a light background poll while the
+     tab is visible, plus an immediate refetch the moment someone switches back to it. */
+  useEffect(() => {
+    if (!me || me.status !== "approved") return;
+
+    const refresh = () => {
+      if (document.visibilityState === "visible") loadData(me);
+    };
+
+    const interval = setInterval(refresh, LIVE_SYNC_MS);
+    document.addEventListener("visibilitychange", refresh);
+    window.addEventListener("focus", refresh);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", refresh);
+      window.removeEventListener("focus", refresh);
+    };
+  }, [me, loadData]);
+
   async function signOut() {
     await api<{ ok: boolean }>("/api/auth/logout", "POST").catch(() => ({ ok: false }));
     setMe(null);
@@ -2103,7 +2126,8 @@ export default function App() {
   async function saveProject(p: Project) {
     if (p.id) {
       const row = await api<Project>(`/api/projects/${p.id}`, "PUT", p);
-      setProjects(prev => prev.map(x => (x.id === row.id ? row : x)));
+      // Edited projects jump to the top, same as the server's most-recently-touched ordering.
+      setProjects(prev => [row, ...prev.filter(x => x.id !== row.id)]);
       notify("Project updated");
     } else {
       const row = await api<Project>("/api/projects", "POST", p);
